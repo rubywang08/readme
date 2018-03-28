@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="http://10.10.103.124:8280/jenkins/userContent/release_tool.css" type="text/css" />
+    <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript">
+    	function calculateMergedTags(){
+    		var $targetTag = $('.js-target-tag').val(),
+    			data = {},
+    			arr = new Array();
+    		
+    		$("input:checkbox").each(function (e) {
+    			if($(this).is(':checked')) {
+    				arr.push($(this).next().html());
+    			}
+    		})
+    		data['targetTag'] = $targetTag;
+    		data['sourceTags'] = arr;
+    		//calculateMergedTags
+    		$.ajax({
+	            type : 'POST',
+	            url : '/calculateMergedTags',
+	            data: JSON.stringify(data),
+	            dataType:"json",
+	            contentType:"application/json; charset=utf-8",
+	            success : function(result) {
+	            	$json = JSON.parse(result);
+	            	var newEndTags="", mergedTags="";
+	            	for (i in $json.newEndTags){
+	            		newEndTags +=$json.newEndTags[i]+",";
+	            	}
+	            	var reg=/,$/gi;
+	            	newEndTags=newEndTags.replace(reg,""); 
+	            	for (i in $json.mergedTags){
+	            		mergedTags+=$json.mergedTags[i]+",";
+	            	}
+	            	mergedTags=mergedTags.replace(reg,""); 
+	            	$('#new_end_tags').html("New Based on: "+ newEndTags+"");
+	            	$('#merged_tags').html("Merged tags: "+mergedTags+"");
+	            	$('#tagNames').val(mergedTags);
+	            },
+	            error : function() {
+	                alert('error!')
+	            }
+	        });
+    	}
+   </script>
+</head>
+<body>	
+	<h3>Tag Maps​：</h3>
+	<div id="menu" style="background-color:#B4EEB4;width:600px;float:left;">
+		<a href="/newTag">Create New Tag</a>
+		<h4>Enhancement: </h4>
+		<ul style="list-style-type:disc" th:each="tag:${enhTags}">
+		   <input type="checkbox"></input><li th:text="${tag.tagName}" ></li>
+		  <td th:if="${tag.enhTag !=null}" th:text="${tag.enhTag}"></td>
+	      <td th:if="${tag.hunterTag !=null}" th:text="${tag.hunterTag}"></td>
+	      <td th:if="${tag.bobaTag !=null}" th:text="${tag.bobaTag}"></td>
+	      <td th:if="${tag.pwTag !=null}" th:text="${tag.pwTag}"></td>
+	      <td th:if="${tag.vTag !=null}" th:text="${tag.vTag}"></td>
+		</ul>
+	
+		<h4>Hunter: </h4>
+		    <ul th:each="tag:${hunterTags}">
+		      <input type="checkbox"></input><li th:text="${tag.tagName}" ></li>
+			 <td th:if="${tag.enhTag !=null}" th:text="${tag.enhTag}"></td>
+		      <td th:if="${tag.hunterTag !=null}" th:text="${tag.hunterTag}"></td>
+		      <td th:if="${tag.bobaTag !=null}" th:text="${tag.bobaTag}"></td>
+		      <td th:if="${tag.pwTag !=null}" th:text="${tag.pwTag}"></td>
+		      <td th:if="${tag.vTag !=null}" th:text="${tag.vTag}"></td>
+		    </ul>
+		<h4>Boba: </h4>
+		    <ul th:each="tag:${bobaTags}">
+		      <input type="checkbox"></input><li th:text="${tag.tagName}" ></li>
+			   <td th:if="${tag.enhTag !=null}" th:text="${tag.enhTag}"></td>
+		      <td th:if="${tag.hunterTag !=null}" th:text="${tag.hunterTag}"></td>
+		      <td th:if="${tag.bobaTag !=null}" th:text="${tag.bobaTag}"></td>
+		      <td th:if="${tag.pwTag !=null}" th:text="${tag.pwTag}"></td>
+		      <td th:if="${tag.vTag !=null}" th:text="${tag.vTag}"></td>
+		    </ul>
+		<h4>PW: </h4>
+		    <ul th:each="tag:${pwTags}">
+		      <input type="checkbox"></input><li th:text="${tag.tagName}" ></li>
+			  <td th:if="${tag.enhTag !=null}" th:text="${tag.enhTag}"></td>
+		      <td th:if="${tag.hunterTag !=null}" th:text="${tag.hunterTag}"></td>
+		      <td th:if="${tag.bobaTag !=null}" th:text="${tag.bobaTag}"></td>
+		      <td th:if="${tag.pwTag !=null}" th:text="${tag.pwTag}"></td>
+		      <td th:if="${tag.vTag !=null}" th:text="${tag.vTag}"></td>
+		    </ul>
+		<h4>V: </h4>
+		    <ul th:each="tag:${vTags}">
+		       <input type="checkbox"></input><li th:text="${tag.tagName}" ></li>
+			  <td th:if="${tag.enhTag !=null}" th:text="${tag.enhTag}"></td>
+		      <td th:if="${tag.hunterTag !=null}" th:text="${tag.hunterTag}"></td>
+		      <td th:if="${tag.bobaTag !=null}" th:text="${tag.bobaTag}"></td>
+		      <td th:if="${tag.pwTag !=null}" th:text="${tag.pwTag}"></td>
+		      <td th:if="${tag.vTag !=null}" th:text="${tag.vTag}"></td>
+		    </ul>
+	</div>
+	
+	<div id="content" style="background-color:#EEEEEE;height:200px;width:400px;float:left;">
+		<div>
+			Merge to tag: <input type="text" class="js-target-tag"></input>
+			<button onclick="calculateMergedTags()">calculate merged tags</button>
+		</div>
+		<div id="new_end_tags" style="margin-top: 20px;" ></div>
+		<div id="merged_tags" style="margin-top: 20px;" ></div>
+		<div id="searchTags"  style="margin-top: 20px;">
+			get Readme of tags:(输入tag名字如tag-e3.2.4, 若有多个tag，以逗号分隔如：tag-e3.4.5,tag-e3.4.6，然后点击button生成对应tag的readme.txt)
+	        <form action="#" th:action="@{/generateReadme}" th:object="${newTag}" method="post">
+	        	<p>Tag Names: <textarea id="tagNames" th:field="*{tagName}"></textarea></p>
+	        	<p><input type="submit" value="get readme" /></p>
+	        </form>
+		</div>
+	</div>
+	
+</body>
+</html>

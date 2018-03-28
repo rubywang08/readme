@@ -1,0 +1,210 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="http://10.10.103.124:8280/jenkins/userContent/release_tool.css" type="text/css" />
+    <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript">
+    
+    $(document).on('click', '.submit-button', function(e){
+	    	$tagName = $('.js-validate-tag-name').val();
+			if(!$.trim($tagName) ){
+				if($('.error').length==0){
+					$('.js-validate-tag-name').after('<p class="error" style="color:red">tag name is required.</p>');
+				}
+			}else{
+				if($('.error').length!=0){
+					$('.error').remove();
+				}
+		        $('#form').submit();
+			}
+		})
+    	
+	    function loadAllTags(){
+	        $.ajax({
+	            type : 'GET',
+	            url : '/allTags',
+	            success : function(result) {
+	            	$('#allTags').find('.tag-name').remove();
+	            	 for(var i in result){
+	                	$('#allTags').append('<div class="tag-name"> <p class="tag-name-value">'+result[i]+'</p> <button class="load-tag">load tag</button> | <button class="delete-btn">delete tag</button> | <button class="update-btn">update tag</button></div>');
+	            	 }
+	            },
+	            error : function() {
+	                alert('error!')
+	            }
+	        });
+    	}
+	    
+	    
+	    $(document).on('click', '.load-tag', function(e){
+	    	var $this = $(this);
+	    	$this.off('click');
+	    	$tagName = $this.siblings('.tag-name-value').html();
+	        $.ajax({
+	            type : 'POST',
+	            url : '/getTag',
+	            data: {'tagName':$tagName},
+	            success : function(result) {
+	            	var result = JSON.parse(result);
+	            	$this.closest('.tag-name').find('.tag-info').remove();
+	            	$this.closest('.tag-name').append('<p class="tag-info">'+result+'</p>');
+	            },
+	            error : function() {
+	                alert('error!')
+	            }
+	        });
+	    })
+	    
+	    $(document).on('click', '.delete-btn', function(e){
+	    	var $this = $(this);
+	    	$this.off('click');
+	    	$tagName = $this.siblings('.tag-name-value').html();
+	        $.ajax({
+	            type : 'POST',
+	            url : '/deleteTag',
+	            data: {'tagName':$tagName},
+	            success : function(result) {
+	            	var result = JSON.parse(result);
+	            	if(result){
+	            		$this.closest('.tag-name').html("");
+	            	}
+	            },
+	            error : function() {
+	                alert('error!')
+	            }
+	        });
+	    })
+	    
+	    
+	    function generateReadme(){
+	    	$tagNames = $('#tagNames').val();
+	        $.ajax({
+	            type : 'POST',
+	            url : '/generateReadme',
+	            data: {'tagNames':$tagNames},
+	            success : function(result) {
+	            },
+	            error : function() {
+	                alert('error!')
+	            }
+	        });
+	    }
+	    
+	    $(document).on('blur', '.js-validate-tag-name', function(e){
+	    	$this = $(this);
+	    	if(!$.trim($this.val()) ){
+	    		return;
+	    	}
+    		$('.js-real-name').val($('.js-prefix').val()+$this.val());
+
+	    });
+
+    	
+	    $(document).on('change', '.js-select-team', function(e){
+	    	$('.js-prefix').val($('.js-select-team').val());
+	    	autoHideTag();
+    	})	
+    	
+    	function autoHideTag(){
+	    	var $prefix = $('.js-select-team').val();
+	    	if($prefix == 'tag-v'){
+	    		$('.js-select-v').attr('disabled','disabled');
+	    		$('.js-select-hunter').removeAttr('disabled');
+	    		$('.js-select-pw').removeAttr('disabled');
+	    		$('.js-select-boba').removeAttr('disabled');
+	    		$('.js-select-enh').removeAttr('disabled');
+	    	}else if($prefix =='tag-b'){
+	    		$('.js-select-hunter').attr('disabled','disabled');
+	    		$('.js-select-v').removeAttr('disabled');
+	    		$('.js-select-pw').removeAttr('disabled');
+	    		$('.js-select-boba').removeAttr('disabled');
+	    		$('.js-select-enh').removeAttr('disabled');
+	    	}else if($prefix =='tag-p'){
+	    		$('.js-select-pw').attr('disabled','disabled');
+	    		$('.js-select-v').removeAttr('disabled');
+	    		$('.js-select-hunter').removeAttr('disabled');
+	    		$('.js-select-boba').removeAttr('disabled');
+	    		$('.js-select-enh').removeAttr('disabled');
+	    	}else if($prefix =='tag-f'){
+	    		$('.js-select-boba').attr('disabled','disabled');
+	    		$('.js-select-v').removeAttr('disabled');
+	    		$('.js-select-hunter').removeAttr('disabled');
+	    		$('.js-select-pw').removeAttr('disabled');
+	    		$('.js-select-enh').removeAttr('disabled');
+	    	}else if($prefix =='tag-e'){
+	    		$('.js-select-enh').attr('disabled','disabled');
+	    		$('.js-select-v').removeAttr('disabled');
+	    		$('.js-select-hunter').removeAttr('disabled');
+	    		$('.js-select-pw').removeAttr('disabled');
+	    		$('.js-select-boba').removeAttr('disabled');
+	    	}
+	    }
+
+	    window.onload = function(){
+	    	autoHideTag();
+	    }
+   </script>
+</head>
+<body>
+	<h1>Form</h1>
+    <form id="form" action="#" th:action="@{/newTag}" th:object="${newTag}" method="post">
+    	<p>Please select a tag prefix first:
+    		<select class="js-select-team">
+            	<option  value="tag-v">tag-v</option> 
+            	<option  value="tag-f">tab-f</option> 
+            	<option  value="tag-p">tag-p</option> 
+            	<option  value="tag-b">tag-b</option> 
+            	<option  value="tag-e">tag-e</option> 
+	        </select>
+	     </p>
+        <p>Tag: <input type="text" readonly="readonly" value="tag-v" class="js-prefix"/><input type="text" class="js-validate-tag-name"/>(tag version，必填，如3.3.4)</p>
+        <input type="hidden" th:field="*{tagName}" class="js-real-name"></input>
+        <p>DBchanges: <textarea th:field="*{dbChanges}"></textarea></p>
+        <p>WCSchanges: <textarea th:field="*{wcsChanges}"></textarea></p>
+        <p>EndecaChanges: <textarea th:field="*{endecaChanges}"></textarea></p>
+        <p>EnvClientChanges: <textarea th:field="*{envClientChanges}"></textarea></p>
+        <p>ContentKeyChanges: <textarea th:field="*{contentKeyChanges}"></textarea></p>
+        <p>Comments: <textarea th:field="*{comments}"></textarea></p>
+        <p>Based on tags:<br/>
+	        Enhancement: 
+	        <select th:field="*{enhTag}" class="js-select-enh">
+	      		<option value="">Choose Tag</option>
+            	<option  th:each="tagName:${enhTags}" th:value="${tagName}" th:text="${tagName}" ></option> 
+	        </select><br/>
+	        Hunter:
+	       <select  th:field="*{hunterTag}"  class="js-select-hunter">
+	        	<option value="">Choose Tag</option>
+            	<option  th:each="tagName:${hunterTags}" th:value="${tagName}" th:text="${tagName}"></option> 
+	        </select><br/>
+	        Boba: 
+	        <select th:field="*{bobaTag}"  class="js-select-boba">
+	        	<option value="" >Choose Tag</option>
+            	<option  th:each="tagName:${bobaTags}" th:value="${tagName}" th:text="${tagName}"></option> 
+	        </select><br/>
+	        PW: 
+	       <select th:field="*{pwTag}"  class="js-select-pw">
+	        	<option value="" >Choose Tag</option>
+            	<option  th:each="tagName:${pwTags}" th:value="${tagName}" th:text="${tagName}"></option> 
+	        </select><br/>
+	      	V: 
+	        <select th:field="*{vTag}" class="js-select-v">
+	        	<option value="" >Choose Tag</option>
+            	<option  th:each="tagName:${vTags}" th:value="${tagName}" th:text="${tagName}"></option> 
+	        </select>
+        </p>
+    </form>
+	    <p><button class="submit-button">add tag</button>(添加一个tag)</p>
+    
+    <p th:if="${newTag.tagName !=null}" th:text="'id: ' + ${newTag}"/>
+	
+	<div id="allTags">
+		<button onclick="loadAllTags()">load all tags</button>(点击获取所有已添加的tag的名字)<br/>
+	</div>
+	<br/>
+	<div>
+		<a href="/tagMap">Look for Tag Map</a>
+	</div>
+</body>
+</html>
